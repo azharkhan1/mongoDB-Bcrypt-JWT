@@ -93,11 +93,13 @@ server.post("/signup", (req, res, next) => {
                     newUser.save((err, data) => {
                         if (!err) {
                             console.log("user created");
-                            res.send("user created");
+                            res.status(200).send({
+                                message: "Signed up succesfully",
+                            })
                         }
                         else {
                             console.log("Could not save due to: " + err);
-                            res.send("error is =>>" + err);
+                            res.status(500).send("error is =>>" + err);
                         }
                     })
                 })
@@ -108,7 +110,7 @@ server.post("/signup", (req, res, next) => {
                 })
             }
             else {
-                res.send({
+                res.status(409).send({
                     message: "user already exists",
                 })
             }

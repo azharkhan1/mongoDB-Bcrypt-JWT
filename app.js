@@ -9,11 +9,11 @@ const signup = () => {
     var userEmail = document.getElementById("email").value.toLowerCase();
     var userPassword = document.getElementById("password").value
     var userName = document.getElementById("name").value
+
     let obj = {
         userEmail: userEmail,
         userPassword: userPassword,
         userName: userName,
-
     };
 
     const Http = new XMLHttpRequest();
@@ -23,10 +23,17 @@ const signup = () => {
 
     Http.onreadystatechange = (e) => {
         if (Http.readyState === 4) {
+            let jsonRes = JSON.parse(Http.responseText)
+            console.log(Http.status);
+            if (Http.status === 200) {
+                alert(jsonRes.message);
+                window.location.href="login.html";
+            }
+            else{
+                    alert(jsonRes.message);
+            }
 
-            console.log(Http.responseText)
-            // let jsonRes = JSON.parse(Http.responseText)
-            // console.log(jsonRes);
+ 
 
         }
     }
