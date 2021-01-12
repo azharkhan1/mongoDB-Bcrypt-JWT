@@ -11,11 +11,17 @@ var cors = require("cors");
 var bcrypt = require("bcrypt-inzi")
 var jwt = require('jsonwebtoken'); // https://github.com/auth0/node-jsonwebtoken
 var mongoose = require("mongoose");
+var cookieParser = require("cookie-parser");
+
 var server = express();
 
 server.use(morgan("dev"));
 server.use(bodyParser.json());
-server.use(cors());
+server.use(cors({
+    origin: '*',
+    credentials: true
+}));
+server.use(cookieParser());
 
 var PORT = process.env.PORT || 3000;
 var SERVER_SECRET = process.env.SECRET || "12ka4";
@@ -152,6 +158,14 @@ server.post("/login", (req, res, next) => {
                             ip: req.connection.remoteAddress
                         }, SERVER_SECRET)
 
+
+                    res.cookie('jToken', token, {
+                        maxAge: 86_400_000,
+                        httpOnly: true
+                    });
+
+
+
                     res.status(200).send({
                         message: "signed in succesfully",
                         user: {
@@ -160,6 +174,12 @@ server.post("/login", (req, res, next) => {
                         },
                         token: token,
                     })
+
+                    // when making request from frontend:
+                    // var xhr = new XMLHttpRequest();
+                    // xhr.open('GET', 'http://example.com/', true);
+                    // xhr.withCredentials = true;
+                    // xhr.send(null);
                 } else {
                     res.status(409).send({
                         message: "Password not matched",
@@ -175,21 +195,49 @@ server.post("/login", (req, res, next) => {
     })
 })
 
-server.get("/profile", (req, res) => {
+server.use(function (req, res, next) {
 
-    if (!req.headers) {
-        res.send(`
-        please provide token in headers,
-        e.g:
-        {
-            "token" : "354564987231657498"
-        }
-        `)
+    console.log(req.cookies);
+    if (!req.cookies.jToken) {
+        res.status(401).send("include http-only credentials with every request")
         return;
     }
 
-    var decodedData = jwt.verify(req.headers.token, SERVER_SECRET);
-    console.log("user ==> " + user)
+    jwt.verify(req.cookies.Jtoken, SERVER_SECRET, function (err, data) {
+
+        if (!err) {
+            var issueDate = decodedData.iat * 1000;
+            var nowData = new Data().getTime();
+            var diff = nowDate - issueDate;
+
+            if (diff > 30000) {
+                res.status(401).send("Token expired");
+            }
+            else {
+                var token = jwt.sign(
+                    {
+                        id: decodedData.id,
+                        name: decodedData.name,
+                        email: decodedData.email,
+                    }, SERVER_SECRET
+
+                )
+                res.cookie('jToken', token, {
+                    maxAge: 86_400_000,
+                    httpOnly: true
+                });
+                req.body.jToken = decodedData;
+                next();
+            }
+
+        }
+    });
+})
+
+
+
+
+server.get("/profile", (req, res) => {
 
     userModel.findOne(decodedData.id, "userEmail userName createdOn", (err, user) => {
         if (!err) {
