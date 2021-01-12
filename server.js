@@ -197,7 +197,6 @@ server.post("/login", (req, res, next) => {
 
 server.use(function (req, res, next) {
 
-    console.log(req.cookies);
     if (!req.cookies.jToken) {
         res.status(401).send("include http-only credentials with every request")
         return;
@@ -207,13 +206,13 @@ server.use(function (req, res, next) {
 
         if (!err) {
             var issueDate = decodedData.iat * 1000;
-            var nowData = new Data().getTime();
+            var nowDate = new Data().getTime();
             var diff = nowDate - issueDate;
 
-            if (diff > 30000) {
+            if (diff > 30000) { // 30 second  expiry
                 res.status(401).send("Token expired");
             }
-            else {
+            else { // else new token 
                 var token = jwt.sign(
                     {
                         id: decodedData.id,
@@ -259,4 +258,3 @@ server.get("/profile", (req, res) => {
 server.listen(PORT, () => {
     console.log("server is running on: ", PORT);
 })
-
