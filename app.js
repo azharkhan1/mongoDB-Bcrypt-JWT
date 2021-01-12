@@ -22,18 +22,19 @@ const signup = () => {
     Http.send(JSON.stringify(obj));
 
     Http.onreadystatechange = (e) => {
+
         if (Http.readyState === 4) {
             let jsonRes = JSON.parse(Http.responseText)
             console.log(Http.status);
             if (Http.status === 200) {
                 alert(jsonRes.message);
-                window.location.href="login.html";
+                window.location.href = "login.html";
             }
-            else{
-                    alert(jsonRes.message);
+            else {
+                alert(jsonRes.message);
             }
 
- 
+
 
         }
     }
