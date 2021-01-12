@@ -12,27 +12,15 @@ var bcrypt = require("bcrypt-inzi")
 var jwt = require('jsonwebtoken'); // https://github.com/auth0/node-jsonwebtoken
 var mongoose = require("mongoose");
 var cookieParser = require("cookie-parser");
-<<<<<<< HEAD
-=======
-
->>>>>>> d62d88d845f8c3d1e58fc22a799d1550acf97e26
 var server = express();
 
 server.use(morgan("dev"));
 server.use(bodyParser.json());
 server.use(cors({
-<<<<<<< HEAD
     origin: "*",
     credentials: true,
 }));
 server.use(cookieParser());
-=======
-    origin: '*',
-    credentials: true
-}));
-server.use(cookieParser());
-
->>>>>>> d62d88d845f8c3d1e58fc22a799d1550acf97e26
 var PORT = process.env.PORT || 3000;
 var SERVER_SECRET = process.env.SECRET || "12ka4";
 
@@ -174,20 +162,11 @@ server.post("/login", (req, res, next) => {
                             ip: req.connection.remoteAddress
                         }, SERVER_SECRET)
 
-<<<<<<< HEAD
-=======
-
->>>>>>> d62d88d845f8c3d1e58fc22a799d1550acf97e26
                     res.cookie('jToken', token, {
                         maxAge: 86_400_000,
                         httpOnly: true
                     });
 
-<<<<<<< HEAD
-=======
-
-
->>>>>>> d62d88d845f8c3d1e58fc22a799d1550acf97e26
                     res.status(200).send({
                         message: "signed in succesfully",
                         user: {
@@ -196,12 +175,6 @@ server.post("/login", (req, res, next) => {
                         },
                         token: token,
                     })
-
-                    // when making request from frontend:
-                    // var xhr = new XMLHttpRequest();
-                    // xhr.open('GET', 'http://example.com/', true);
-                    // xhr.withCredentials = true;
-                    // xhr.send(null);
                 } else {
                     res.status(409).send({
                         message: "Password not matched",
@@ -219,56 +192,12 @@ server.post("/login", (req, res, next) => {
 
 server.use(function (req, res, next) {
 
-<<<<<<< HEAD
     console.log("req.cookies: ", req.cookies);
-=======
->>>>>>> d62d88d845f8c3d1e58fc22a799d1550acf97e26
     if (!req.cookies.jToken) {
         res.status(401).send("include http-only credentials with every request")
         return;
     }
-<<<<<<< HEAD
     jwt.verify(req.cookies.jToken, SERVER_SECRET, function (err, decodedData) {
-=======
-
-    jwt.verify(req.cookies.Jtoken, SERVER_SECRET, function (err, data) {
-
-        if (!err) {
-            var issueDate = decodedData.iat * 1000;
-            var nowDate = new Data().getTime();
-            var diff = nowDate - issueDate;
-
-            if (diff > 30000) { // 30 second  expiry
-                res.status(401).send("Token expired");
-            }
-            else { // else new token 
-                var token = jwt.sign(
-                    {
-                        id: decodedData.id,
-                        name: decodedData.name,
-                        email: decodedData.email,
-                    }, SERVER_SECRET
-
-                )
-                res.cookie('jToken', token, {
-                    maxAge: 86_400_000,
-                    httpOnly: true
-                });
-                req.body.jToken = decodedData;
-                next();
-            }
-
-        }
-    });
-})
-
-
-
-
-server.get("/profile", (req, res) => {
-
-    userModel.findOne(decodedData.id, "userEmail userName createdOn", (err, user) => {
->>>>>>> d62d88d845f8c3d1e58fc22a799d1550acf97e26
         if (!err) {
 
             const issueDate = decodedData.iat * 1000;
@@ -323,3 +252,4 @@ server.get("/profile", (req, res, next) => {
 server.listen(PORT, () => {
     console.log("server is running on: ", PORT);
 })
+
