@@ -11,12 +11,16 @@ var cors = require("cors");
 var bcrypt = require("bcrypt-inzi")
 var jwt = require('jsonwebtoken'); // https://github.com/auth0/node-jsonwebtoken
 var mongoose = require("mongoose");
+var cookieParser = require("cookie-parser");
 var server = express();
 
 server.use(morgan("dev"));
 server.use(bodyParser.json());
-server.use(cors());
-
+server.use(cors({
+    origin: "*",
+    credentials: true,
+}));
+server.use(cookieParser());
 var PORT = process.env.PORT || 3000;
 var SERVER_SECRET = process.env.SECRET || "12ka4";
 
@@ -59,6 +63,12 @@ var userSchema = new mongoose.Schema({
 });
 
 var userModel = mongoose.model("users", userSchema);
+
+
+server.get("/download", (req, res) => {
+    console.log(__dirname);
+    res.sendFile(path.resolve(path.join(__dirname, "/package.json")))
+})
 
 
 server.post("/signup", (req, res, next) => {
@@ -152,6 +162,11 @@ server.post("/login", (req, res, next) => {
                             ip: req.connection.remoteAddress
                         }, SERVER_SECRET)
 
+                    res.cookie('jToken', token, {
+                        maxAge: 86_400_000,
+                        httpOnly: true
+                    });
+
                     res.status(200).send({
                         message: "signed in succesfully",
                         user: {
@@ -175,38 +190,64 @@ server.post("/login", (req, res, next) => {
     })
 })
 
-server.get("/profile", (req, res) => {
+server.use(function (req, res, next) {
 
-    if (!req.headers) {
-        res.send(`
-        please provide token in headers,
-        e.g:
-        {
-            "token" : "354564987231657498"
-        }
-        `)
+    console.log("req.cookies: ", req.cookies);
+    if (!req.cookies.jToken) {
+        res.status(401).send("include http-only credentials with every request")
         return;
     }
-
-    var decodedData = jwt.verify(req.headers.token, SERVER_SECRET);
-    console.log("user ==> " + user)
-
-    userModel.findOne(decodedData.id, "userEmail userName createdOn", (err, user) => {
+    jwt.verify(req.cookies.jToken, SERVER_SECRET, function (err, decodedData) {
         if (!err) {
-            res.send({
-                profile: user,
-            })
-        }
-        else {
-            res.status(505).send({
-                message: "server error",
-            })
-        }
-    })
 
+            const issueDate = decodedData.iat * 1000;
+            const nowDate = new Date().getTime();
+            const diff = nowDate - issueDate; // 86400,000
 
+            if (diff > 300000) { // expire after 5 min (in milis)
+                res.status(401).send("token expired")
+            } else { // issue new token
+                var token = jwt.sign({
+                    id: decodedData.id,
+                    userName: decodedData.userName,
+                    userEmail: decodedData.userEmail,
+                }, SERVER_SECRET)
+                res.cookie('jToken', token, {
+                    maxAge: 86_400_000,
+                    httpOnly: true
+                });
+                req.body.jToken = decodedData
+                next();
+            }
+        } else {
+            res.status(401).send("invalid token")
+        }
+    });
 })
 
+
+
+server.get("/profile", (req, res, next) => {
+
+
+
+
+
+    userModel.findById(req.body.jToken.id, 'userName userEmail',
+        function (err, doc) {
+            if (!err) {
+
+                res.send({
+                    profile: doc
+                })
+            } else {
+                res.status(500).send({
+                    message: "server error"
+                })
+            }
+
+        })
+})
 
 server.listen(PORT, () => {
     console.log("server is running on: ", PORT);
