@@ -13,6 +13,7 @@ var jwt = require('jsonwebtoken'); // https://github.com/auth0/node-jsonwebtoken
 var mongoose = require("mongoose");
 var cookieParser = require("cookie-parser");
 var server = express();
+var path = require("path");
 
 server.use(morgan("dev"));
 server.use(bodyParser.json());
@@ -21,12 +22,14 @@ server.use(cors({
     credentials: true,
 }));
 server.use(cookieParser());
-var PORT = process.env.PORT || 3000;
+var PORT = process.env.PORT || 7000;
 var SERVER_SECRET = process.env.SECRET || "12ka4";
 
 
 
 let dbURI = "mongodb+srv://azhar:azhar@mongodb.xd2iy.mongodb.net/testDB?retryWrites=true&w=majority";
+
+server.use("/",express.static(path.resolve(path.join(__dirname,"public"))));
 
 mongoose.connect(dbURI, { useNewUrlParser: true, useUnifiedTopology: true });
 
