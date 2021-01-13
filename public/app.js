@@ -1,6 +1,6 @@
 
-const url = 'https://loginjwtmongo.herokuapp.com';
-// const url = "http://localhost:7000";
+// const url = 'https://loginjwtmongo.herokuapp.com';
+const url = "http://localhost:7000";
 
 
 
