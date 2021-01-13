@@ -204,7 +204,7 @@ server.use(function (req, res, next) {
             const nowDate = new Date().getTime();
             const diff = nowDate - issueDate; // 86400,000
 
-            if (diff > 300000) { // expire after 5 min (in milis)
+            if (diff > 15000) { // expire after 5 min (in milis)
                 res.status(401).send("token expired")
             } else { // issue new token
                 var token = jwt.sign({
@@ -230,9 +230,6 @@ server.use(function (req, res, next) {
 server.get("/profile", (req, res, next) => {
 
 
-
-
-
     userModel.findById(req.body.jToken.id, 'userName userEmail',
         function (err, doc) {
             if (!err) {
@@ -247,6 +244,17 @@ server.get("/profile", (req, res, next) => {
             }
 
         })
+})
+
+server.post("/logout",(req,res,next)=>{
+
+    res.cookie('jToken', "", {
+        maxAge: 86_400_000,
+        httpOnly: true
+    });
+
+    res.send("logout succesfully");
+
 })
 
 server.listen(PORT, () => {
